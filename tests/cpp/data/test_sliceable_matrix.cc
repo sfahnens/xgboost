@@ -36,7 +36,7 @@ TEST(SliceableMatrix, MatrixToSlices) {
   }
 }
 
-TEST(SliceableMatrix, RowIterator) {
+TEST(SliceableMatrix, Copy) {
   std::string tmp_file = CreateSimpleTestData();
   auto const dmat = std::unique_ptr<xgboost::DMatrix>{
       xgboost::DMatrix::Load(tmp_file, true, false)};
@@ -49,6 +49,15 @@ TEST(SliceableMatrix, RowIterator) {
   auto copy_src = std::unique_ptr<SimpleCSRSource>(new SimpleCSRSource());
   copy_src->CopyFrom(&smat);
   SimpleDMatrix copy_mat{std::move(copy_src)};
+
+  EXPECT_EQ(dmat->info().num_col, copy_mat.info().num_col);
+  EXPECT_EQ(dmat->info().num_row, copy_mat.info().num_row);
+  EXPECT_EQ(dmat->info().num_nonzero, copy_mat.info().num_nonzero);
+  EXPECT_EQ(dmat->info().labels, copy_mat.info().labels);
+  EXPECT_EQ(dmat->info().root_index, copy_mat.info().root_index);
+  EXPECT_EQ(dmat->info().group_ptr, copy_mat.info().group_ptr);
+  EXPECT_EQ(dmat->info().weights, copy_mat.info().weights);
+  EXPECT_EQ(dmat->info().base_margin, copy_mat.info().base_margin);
 
   auto* orig_it = dmat->RowIterator();
   orig_it->BeforeFirst();

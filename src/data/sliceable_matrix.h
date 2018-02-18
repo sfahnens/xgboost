@@ -33,6 +33,10 @@ struct Slice {
   Slice& operator=(Slice const&) = delete;
   Slice& operator=(Slice&&) = default;
 
+  size_t row_count() const {
+    return row_ptr_.size() - 1;
+  }
+
   // csr data
   std::vector<RowBatch::Entry> row_data_;
   std::vector<size_t> row_ptr_;
