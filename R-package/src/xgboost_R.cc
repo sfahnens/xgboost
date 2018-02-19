@@ -49,6 +49,14 @@ void _DMatrixFinalizer(SEXP ext) {
   R_API_END();
 }
 
+void _SlicesFinalizer(SEXP ext) {
+  R_API_BEGIN();
+  if (R_ExternalPtrAddr(ext) == NULL) return;
+  CHECK_CALL(SlicesFree(R_ExternalPtrAddr(ext)));
+  R_ClearExternalPtr(ext);
+  R_API_END();
+}
+
 SEXP XGDMatrixCreateFromFile_R(SEXP fname, SEXP silent) {
   SEXP ret;
   R_API_BEGIN();
@@ -139,6 +147,53 @@ SEXP XGDMatrixSliceDMatrix_R(SEXP handle, SEXP idxset) {
   CHECK_CALL(XGDMatrixSliceDMatrix(R_ExternalPtrAddr(handle),
                                    BeginPtr(idxvec), len,
                                    &res));
+  ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
+  R_RegisterCFinalizerEx(ret, _DMatrixFinalizer, TRUE);
+  R_API_END();
+  UNPROTECT(1);
+  return ret;
+}
+
+SEXP XGDMatrixMakeSlices_R(SEXP handle, SEXP folds) {
+  if(!Rf_isVectorList(folds)) {
+    return R_NilValue;
+  }
+
+  SEXP ret;
+  R_API_BEGIN();
+
+  std::vector<std::vector<size_t>> indices;
+  for(auto i = 0; i < Rf_length(folds); ++i) {
+    auto fold = VECTOR_ELT(folds, i);
+    
+    indices.emplace_back();
+    indices.back().resize(Rf_length(fold), 0);
+    for(int i = 0; i < Rf_length(fold); ++i) {
+      indices.back()[i] = INTEGER(fold)[i] - 1;
+    }
+  }
+
+  SlicesHandle res;
+  CHECK_CALL(XGDMatrixMakeSlices(R_ExternalPtrAddr(handle), indices, &res));
+  ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
+  R_RegisterCFinalizerEx(ret, _SlicesFinalizer, TRUE);
+  R_API_END();
+  UNPROTECT(1);
+  return ret;
+}
+
+SEXP XGDMatrixSlicesToMatrix_R(SEXP handle, SEXP active_slices) {
+  SEXP ret;
+  R_API_BEGIN();
+
+  std::vector<size_t> active;
+  active.resize(Rf_length(active_slices), 0);
+  for(int i = 0; i < Rf_length(active_slices); ++i) {
+    active[i] = INTEGER(active_slices)[i] - 1;
+  }
+
+  DMatrixHandle res;
+  CHECK_CALL(XGDMatrixSlicesToMatrix(R_ExternalPtrAddr(handle), active, &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _DMatrixFinalizer, TRUE);
   R_API_END();

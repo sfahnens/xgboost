@@ -14,10 +14,13 @@ TEST(SliceableMatrix, MatrixToSlices) {
       xgboost::DMatrix::Load(tmp_file, true, false)};
   std::remove(tmp_file.c_str());
 
+  // auto slices =
+  //     std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
   auto slices =
-      std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
+      std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), {{0},{1}}));
+
   ASSERT_EQ(slices->size(), 2);
-  auto smat = SliceableMatrix(slices, {0, 1});
+  SliceableMatrix smat{slices, {0, 1}};
 
   auto* row_it = dmat->RowIterator();
   row_it->BeforeFirst();
@@ -42,10 +45,12 @@ TEST(SliceableMatrix, Copy) {
       xgboost::DMatrix::Load(tmp_file, true, false)};
   std::remove(tmp_file.c_str());
 
+  // auto slices =
+  //     std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
   auto slices =
-      std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
-  auto smat = SliceableMatrix(slices, {0, 1});
-
+    std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), {{0},{1}}));
+  SliceableMatrix smat{slices, {0, 1}};
+  
   auto copy_src = std::unique_ptr<SimpleCSRSource>(new SimpleCSRSource());
   copy_src->CopyFrom(&smat);
   SimpleDMatrix copy_mat{std::move(copy_src)};
@@ -81,4 +86,40 @@ TEST(SliceableMatrix, Copy) {
 
   ASSERT_FALSE(orig_it->Next());
   ASSERT_FALSE(copy_it->Next());
+}
+
+TEST(SliceableMatrix, ColAccess) {
+  std::string tmp_file = CreateSimpleTestData();
+  auto const dmat = std::unique_ptr<xgboost::DMatrix>{
+      xgboost::DMatrix::Load(tmp_file, true, false)};
+  std::remove(tmp_file.c_str());
+
+  // auto slices =
+  //     std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
+  auto slices =
+      std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), {{0},{1}}));
+  SliceableMatrix smat{slices, {0, 1}};
+
+  ASSERT_TRUE(smat.HaveColAccess());
+
+  EXPECT_EQ(smat.GetColSize(0), 2);
+  EXPECT_EQ(smat.GetColSize(1), 1);
+  EXPECT_EQ(smat.GetColDensity(0), 1);
+  EXPECT_EQ(smat.GetColDensity(1), 0.5);
+
+  dmlc::DataIter<xgboost::ColBatch> * col_iter = smat.ColIterator();
+
+  long num_col_batch = 0;
+  col_iter->BeforeFirst();
+  while (col_iter->Next()) {
+    num_col_batch += 1;
+    EXPECT_EQ(col_iter->Value().size, dmat->info().num_col)
+      << "Expected batch size = num_cols as max_row_perbatch is 1.";
+    for (int i = 0; i < static_cast<int>(col_iter->Value().size); ++i) {
+      EXPECT_LE(col_iter->Value()[i].length, 1)
+        << "Expected length of each colbatch <=1 as max_row_perbatch is 1.";
+    }
+  }
+  EXPECT_EQ(num_col_batch, dmat->info().num_row)
+    << "Expected num batches = num_rows as max_row_perbatch is 1";
 }

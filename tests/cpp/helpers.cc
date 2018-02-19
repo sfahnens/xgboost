@@ -3,7 +3,7 @@
 #include <random>
 
 std::string TempFileName() {
-  return std::tmpnam(nullptr);
+  return std::string{"."} + std::tmpnam(nullptr);
 }
 
 bool FileExists(const std::string name) {

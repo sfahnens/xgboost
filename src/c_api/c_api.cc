@@ -14,6 +14,7 @@
 
 #include "./c_api_error.h"
 #include "../data/simple_csr_source.h"
+#include "../data/sliceable_matrix.h"
 #include "../common/math.h"
 #include "../common/io.h"
 #include "../common/group_data.h"
@@ -558,9 +559,40 @@ XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
   API_END();
 }
 
+XGB_DLL int XGDMatrixMakeSlices(DMatrixHandle handle,
+                                std::vector<std::vector<size_t>> indices,
+                                SlicesHandle *out) {
+  API_BEGIN();
+  using out_t = std::shared_ptr<std::vector<data::Slice>>;
+  out_t* typed_out = new out_t(new std::vector<data::Slice>{});
+
+  auto dmat = static_cast<std::shared_ptr<DMatrix>*>(handle);
+  auto slices = data::matrix_to_slices(dmat->get(), indices);
+  std::swap(slices, **typed_out);
+
+  *out = typed_out;
+  API_END();
+}
+
+XGB_DLL int XGDMatrixSlicesToMatrix(SlicesHandle handle,
+                                    std::vector<size_t> const& active,
+                                    DMatrixHandle *out) {
+  API_BEGIN();
+  auto* slices = static_cast<data::slices_vec_ptr*>(handle);
+  *out = new std::shared_ptr<DMatrix>(new data::SliceableMatrix{*slices, active});
+  API_END();
+}
+
+
 XGB_DLL int XGDMatrixFree(DMatrixHandle handle) {
   API_BEGIN();
   delete static_cast<std::shared_ptr<DMatrix>*>(handle);
+  API_END();
+}
+
+XGB_DLL int SlicesFree(SlicesHandle handle) {
+  API_BEGIN();
+  delete static_cast<std::shared_ptr<std::vector<data::Slice>>*>(handle);
   API_END();
 }
 

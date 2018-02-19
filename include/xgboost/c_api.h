@@ -31,6 +31,8 @@ typedef uint64_t bst_ulong;  // NOLINT(*)
 
 /*! \brief handle to DMatrix */
 typedef void *DMatrixHandle;
+/*! \brief handle to DMatrix */
+typedef void *SlicesHandle;
 /*! \brief handle to Booster */
 typedef void *BoosterHandle;
 /*! \brief handle to a data iterator */
@@ -234,11 +236,23 @@ XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
                                   const int *idxset,
                                   bst_ulong len,
                                   DMatrixHandle *out);
+
+XGB_DLL int XGDMatrixMakeSlices(DMatrixHandle handle,
+                                std::vector<std::vector<size_t>> indices,
+                                SlicesHandle *out);
+
+XGB_DLL int XGDMatrixSlicesToMatrix(SlicesHandle handle,
+                                    std::vector<size_t> const& active_slices,
+                                    DMatrixHandle *out);
+
 /*!
  * \brief free space in data matrix
  * \return 0 when success, -1 when failure happens
  */
 XGB_DLL int XGDMatrixFree(DMatrixHandle handle);
+
+XGB_DLL int SlicesFree(SlicesHandle handle);
+
 /*!
  * \brief load a data matrix into binary file
  * \param handle a instance of data matrix

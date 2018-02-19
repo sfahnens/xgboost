@@ -59,6 +59,9 @@ XGB_DLL SEXP XGDMatrixCreateFromCSC_R(SEXP indptr,
  */
 XGB_DLL SEXP XGDMatrixSliceDMatrix_R(SEXP handle, SEXP idxset);
 
+XGB_DLL SEXP XGDMatrixMakeSlices_R(SEXP handle, SEXP folds);
+XGB_DLL SEXP XGDMatrixSlicesToMatrix_R(SEXP handle, SEXP active_slices);
+
 /*!
  * \brief load a data matrix into binary file
  * \param handle a instance of data matrix

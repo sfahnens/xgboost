@@ -12,6 +12,8 @@
 #include "../common/common.h"
 #include "../common/io.h"
 
+#include <iostream>
+
 #if DMLC_ENABLE_STD_THREAD
 #include "./sparse_page_source.h"
 #include "./sparse_page_dmatrix.h"

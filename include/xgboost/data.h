@@ -228,7 +228,7 @@ struct RowSet {
    */
   inline bool Load(dmlc::Stream* fi);
   /*! \brief constructor */
-  RowSet() : size_(0) {}
+  RowSet(uint64_t size = 0) : size_(size) {}
 
  private:
   /*! \brief The internal data structure of size */
