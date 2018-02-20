@@ -79,8 +79,7 @@ struct Slice {
   std::vector<size_t> col_sizes_; // number of rows in col page
 };
 
-std::vector<Slice> matrix_to_slices(DMatrix* mat, size_t nrow);
-std::vector<Slice> matrix_to_slices(
+std::vector<Slice> make_slices(
     DMatrix* mat, std::vector<std::vector<size_t>> const& indices);
 
 template<typename DType>

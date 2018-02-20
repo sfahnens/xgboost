@@ -567,7 +567,7 @@ XGB_DLL int XGDMatrixMakeSlices(DMatrixHandle handle,
   out_t* typed_out = new out_t(new std::vector<data::Slice>{});
 
   auto dmat = static_cast<std::shared_ptr<DMatrix>*>(handle);
-  auto slices = data::matrix_to_slices(dmat->get(), indices);
+  auto slices = data::make_slices(dmat->get(), indices);
   std::swap(slices, **typed_out);
 
   *out = typed_out;

@@ -15,9 +15,9 @@ TEST(SliceableMatrix, MatrixToSlices) {
   std::remove(tmp_file.c_str());
 
   // auto slices =
-  //     std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
+  //     std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), 1));
   auto slices =
-      std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), {{0},{1}}));
+      std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), {{0},{1}}));
 
   ASSERT_EQ(slices->size(), 2);
   SliceableMatrix smat{slices, {0, 1}};
@@ -46,11 +46,11 @@ TEST(SliceableMatrix, Copy) {
   std::remove(tmp_file.c_str());
 
   // auto slices =
-  //     std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
+  //     std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), 1));
   auto slices =
-    std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), {{0},{1}}));
+    std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), {{0},{1}}));
   SliceableMatrix smat{slices, {0, 1}};
-  
+
   auto copy_src = std::unique_ptr<SimpleCSRSource>(new SimpleCSRSource());
   copy_src->CopyFrom(&smat);
   SimpleDMatrix copy_mat{std::move(copy_src)};
@@ -95,9 +95,9 @@ TEST(SliceableMatrix, ColAccess) {
   std::remove(tmp_file.c_str());
 
   // auto slices =
-  //     std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), 1));
+  //     std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), 1));
   auto slices =
-      std::make_shared<std::vector<Slice>>(matrix_to_slices(dmat.get(), {{0},{1}}));
+      std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), {{0},{1}}));
   SliceableMatrix smat{slices, {0, 1}};
 
   ASSERT_TRUE(smat.HaveColAccess());
