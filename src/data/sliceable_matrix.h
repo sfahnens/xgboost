@@ -7,8 +7,8 @@
 
 #include "dmlc/data.h"
 
-#include "xgboost/data.h"
 #include "../common/group_data.h"
+#include "xgboost/data.h"
 
 #ifndef log_err
 #define log_err(M, ...) fprintf(stderr, "[ERR] " M "\n", ##__VA_ARGS__);
@@ -60,9 +60,7 @@ struct Slice {
   Slice& operator=(Slice const&) = delete;
   Slice& operator=(Slice&&) = default;
 
-  size_t row_count() const {
-    return rows_.ptr_.size() - 1;
-  }
+  size_t row_count() const { return rows_.ptr_.size() - 1; }
 
   SliceConfigState config_state_;
 
@@ -75,21 +73,19 @@ struct Slice {
   // csc data
   std::vector<Page> cols_;
 
-  std::vector<size_t> col_offsets_; // absolute column offset
-  std::vector<size_t> col_sizes_; // number of rows in col page
+  std::vector<size_t> col_offsets_;  // absolute column offset
+  std::vector<size_t> col_sizes_;    // number of rows in col page
 };
 
-std::vector<Slice> make_slices(
-    DMatrix* mat, std::vector<std::vector<size_t>> const& indices);
+std::vector<Slice> make_slices(DMatrix* mat,
+                               std::vector<std::vector<size_t>> const& indices);
 
-template<typename DType>
+template <typename DType>
 struct VectorDataIter : public dmlc::DataIter<DType> {
   virtual ~VectorDataIter() = default;
 
   /*! \brief set before first of the item */
-  void BeforeFirst(void)  {
-    pos_ = std::numeric_limits<size_t>::max();
-  }
+  void BeforeFirst(void) { pos_ = std::numeric_limits<size_t>::max(); }
 
   /*! \brief move to next item */
   bool Next(void) {
@@ -98,28 +94,22 @@ struct VectorDataIter : public dmlc::DataIter<DType> {
   }
 
   /*! \brief get current data */
-  const DType &Value(void) const {
-    return vec_.at(pos_);
-  }
+  const DType& Value(void) const { return vec_.at(pos_); }
 
   size_t pos_ = std::numeric_limits<size_t>::max();
   std::vector<DType> vec_;
 };
 
-struct ColBatchIter: dmlc::DataIter<ColBatch> {
-  ColBatchIter() :
-      slice_idx_(0), 
-      page_idx_(std::numeric_limits<size_t>::max())
-    {}
+struct ColBatchIter : dmlc::DataIter<ColBatch> {
+  ColBatchIter()
+      : slice_idx_(0), page_idx_(std::numeric_limits<size_t>::max()) {}
 
   void BeforeFirst() override {
     slice_idx_ = 0;
     page_idx_ = std::numeric_limits<size_t>::max();
   }
 
-  const ColBatch &Value() const override {
-    return batch_;
-  }
+  const ColBatch& Value() const override { return batch_; }
 
   bool Next() override;
 
@@ -195,6 +185,7 @@ struct SliceableMatrix : public DMatrix {
   virtual const RowSet& buffered_rowset() const override;
 
   SliceConfigState desired_config_state_;
+  bool col_access_initialized_;
 
   slices_vec_ptr slices_;
   std::vector<size_t> active_;

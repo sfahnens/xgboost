@@ -148,7 +148,7 @@ std::vector<Slice> make_slices(
     while (it->Next()) {
       auto const& batch = it->Value();
       for (size_t i = 0; i < batch.size; ++i) {
-        if(idx_pos >= idx.size()) {
+        if (idx_pos >= idx.size()) {
           break;
         }
         if (curr++ < idx[idx_pos]) {
@@ -220,7 +220,9 @@ void merge_vector(MetaInfo& info, std::vector<Slice> const& slices,
 
 SliceableMatrix::SliceableMatrix(std::shared_ptr<std::vector<Slice>> slices,
                                  std::vector<size_t> active)
-    : slices_(std::move(slices)), active_(std::move(active)) {
+    : slices_(std::move(slices)),
+      active_(std::move(active)),
+      col_access_initialized_(false) {
   verify(std::all_of(begin(active_), end(active_),
                      [this](size_t a) { return a < slices_->size(); }),
          "invalid active slice");
@@ -276,8 +278,6 @@ void SliceableMatrix::maybe_reindex_column_pages() {
     return;
   }
 
-  std::cout << "reindex column pages!" << std::endl;
-
   size_t offset = 0;
   for (auto const& a : active_) {
     auto& s = slices_->at(a);
@@ -290,10 +290,10 @@ void SliceableMatrix::maybe_reindex_column_pages() {
       for (auto& entry : s.cols_[i].data_) {
         entry.index += -s.col_offsets_[i] + offset;  // subtract old, add new
       }
+      s.col_offsets_[i] = offset;
       offset += s.col_sizes_[i];
     }
 
-    std::cout << "update config state!" << std::endl;
     s.config_state_ = desired_config_state_;
   }
 }
@@ -327,9 +327,11 @@ dmlc::DataIter<ColBatch>* SliceableMatrix::ColIterator(
 
 void SliceableMatrix::InitColAccess(const std::vector<bool>& enabled,
                                     float subsample, size_t max_row_perbatch) {
+  verify(kMaxRowsPerBatch <= max_row_perbatch, "invalid max row per batch");
   verify(subsample == 1, "unsupported subsample");
+  col_access_initialized_ = true;
 }
-bool SliceableMatrix::HaveColAccess() const { return true; }
+bool SliceableMatrix::HaveColAccess() const { return col_access_initialized_; }
 bool SliceableMatrix::SingleColBlock() const {
   return slices_->size() == 1 && slices_->at(0).cols_.size() == 1;
 }

@@ -114,6 +114,7 @@ xgb.cv2 <- function(params=list(), data_pairs, nrounds, label = NULL, missing = 
                    prediction = FALSE, showsd = TRUE, metrics=list(),
                    obj = NULL, feval = NULL, verbose = TRUE, print_every_n=1L,
                    early_stopping_rounds = NULL, maximize = NULL, callbacks = list(), ...) {
+  
   check.deprecation(...)
   
   params <- check.booster.params(params, ...)
@@ -123,19 +124,11 @@ xgb.cv2 <- function(params=list(), data_pairs, nrounds, label = NULL, missing = 
   
   check.custom.obj()
   check.custom.eval()
-
-  #if (is.null(params[['eval_metric']]) && is.null(feval))
-  #  stop("Either 'eval_metric' or 'feval' must be provided for CV")
   
   # Check the labels
   # if ( (inherits(data, 'xgb.DMatrix') && is.null(getinfo(data, 'label'))) ||
   #      (!inherits(data, 'xgb.DMatrix') && is.null(label)))
   #   stop("Labels must be provided for CV either through xgb.DMatrix, or through 'label=' when 'data' is matrix")
-  
-  
-  # Potential TODO: sequential CV
-  #if (strategy == 'sequential')
-  #  stop('Sequential CV strategy is not yet implemented')
 
   # verbosity & evaluation printing callback:
   params <- c(params, list(silent = 1))
@@ -169,7 +162,7 @@ xgb.cv2 <- function(params=list(), data_pairs, nrounds, label = NULL, missing = 
     dtest  <- data_pairs[[k]]$test
     dtrain  <- data_pairs[[k]]$train
     handle <- xgb.Booster.handle(params, list(dtrain, dtest))
-    list(dtrain = dtrain, bst = handle, watchlist = list(train = dtrain, test=dtest), index = folds[[k]])
+    list(dtrain = dtrain, bst = handle, watchlist = list(train = dtrain, test=dtest))
   })
   # a "basket" to collect some results from callbacks
   basket <- list()
@@ -187,11 +180,11 @@ xgb.cv2 <- function(params=list(), data_pairs, nrounds, label = NULL, missing = 
     
     for (f in cb$pre_iter) f()
     
-    cat(sprintf("%s", iteration))
+    # cat(sprintf("%s\n", iteration))
     msg <- lapply(bst_folds, function(fd) {
-      cat(sprintf("update fold"))
+      # cat(sprintf("update fold\n"))
       xgb.iter.update(fd$bst, fd$dtrain, iteration - 1, obj)
-      cat(sprintf("eval fold"))
+      # cat(sprintf("eval fold\n"))
       xgb.iter.eval(fd$bst, fd$watchlist, iteration - 1, feval)
     })
     msg <- simplify2array(msg)
