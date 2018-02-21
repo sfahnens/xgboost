@@ -284,8 +284,16 @@ print.xgb.cv2.synchronous <- function(x, verbose = FALSE, ...) {
 
 #' @rdname xgb.cv2.makeSlices
 #' @export
-xgb.cv2.makeSlices <- function(data, folds) {
-  handle <- .Call(XGDMatrixMakeSlices_R, data, folds)
+xgb.cv2.makeSlices <- function(folds, data, label=NULL) {
+  if(inherits(data, "xgb.DMatrix")) {
+    stopifnot(is.null(label))
+    handle <- .Call(XGDMatrixMakeSlicesDMatrix_R, data, folds);
+  } else if(inherits(data, "data.frame")) {
+    stopifnot(is.numeric(label))
+    handle <- .Call(XGDMatrixMakeSlicesDataFrame_R, data, labels, folds);
+  } else {
+    stop("unknown input for make slices")
+  }
   class(handle) <- "xgb.Slices"
   return(handle)
 }
