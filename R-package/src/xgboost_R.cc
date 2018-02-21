@@ -165,7 +165,7 @@ SEXP XGDMatrixMakeSlices_R(SEXP handle, SEXP folds) {
   std::vector<std::vector<size_t>> indices;
   for(auto i = 0; i < Rf_length(folds); ++i) {
     auto fold = VECTOR_ELT(folds, i);
-    
+
     indices.emplace_back();
     indices.back().resize(Rf_length(fold), 0);
     for(int i = 0; i < Rf_length(fold); ++i) {

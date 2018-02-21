@@ -1,6 +1,7 @@
 // Copyright by Contributors
 #include <random>
 
+#include <xgboost/c_api.h>
 #include <xgboost/data.h>
 #include "../../../src/data/simple_csr_source.h"
 #include "../../../src/data/simple_dmatrix.h"
@@ -102,6 +103,8 @@ TEST(SliceableMatrix, ColAccess) {
       std::make_shared<std::vector<Slice>>(make_slices(dmat.get(), {{0}, {1}}));
   SliceableMatrix smat{slices, {0, 1}};
 
+  ASSERT_FALSE(smat.HaveColAccess());
+  smat.InitColAccess({true, true, true, true}, 1., kMaxRowsPerBatch);
   ASSERT_TRUE(smat.HaveColAccess());
 
   EXPECT_EQ(smat.GetColSize(0), 2);
@@ -176,7 +179,7 @@ TEST(SliceableMatrix, Reindex) {
 
   std::vector<std::vector<size_t>> indices{3};
 
-  std::uniform_int_distribution<> dist{0, static_cast<int>(indices.size())-1};
+  std::uniform_int_distribution<> dist{0, static_cast<int>(indices.size()) - 1};
   std::mt19937 gen;
 
   for (auto i = 0u; i < dmat->info().num_row; ++i) {
