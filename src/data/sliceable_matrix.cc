@@ -10,7 +10,6 @@ RowBatch make_row_batch(Slice const& slice, size_t offset) {
   batch.data_ptr = dmlc::BeginPtr(slice.rows_.data_);
 
   batch.base_rowid = offset;
-  offset += slice.row_count();
   return batch;
 }
 
@@ -228,13 +227,14 @@ SliceableMatrix::SliceableMatrix(std::shared_ptr<std::vector<Slice>> slices,
          "invalid active slice");
   std::vector<Slice*> active_slices;
 
-  size_t offset = 0;
+  info_.Clear();
+
   for (auto const& a : active_) {
     desired_config_state_.set(a);
     active_slices.push_back(&slices_->at(a));
 
     auto const& s = slices_->at(a);
-    row_batches_.vec_.emplace_back(make_row_batch(s, offset));
+    row_batches_.vec_.emplace_back(make_row_batch(s, info_.num_row));
 
     info_.num_row += s.info_.num_row;
     info_.num_col = s.info_.num_col;
