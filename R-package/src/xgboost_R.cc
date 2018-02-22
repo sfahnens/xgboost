@@ -153,6 +153,24 @@ SEXP XGDMatrixSliceDMatrix_R(SEXP handle, SEXP idxset) {
   return ret;
 }
 
+std::vector<std::vector<size_t>> extract_folds(SEXP folds) {
+  if(TYPEOF(folds) != INTSXP) {
+    throw std::runtime_error("folds must be integer")
+  }
+
+  std::vector<std::vector<size_t>> idx;
+  for (auto i = 0; i < Rf_length(folds); ++i) {
+    auto fold = VECTOR_ELT(folds, i);
+
+    idx.emplace_back();
+    idx.back().resize(Rf_length(fold), 0);
+    for (int i = 0; i < Rf_length(fold); ++i) {
+      idx.back()[i] = INTEGER(fold)[i] - 1;
+    }
+  }
+  return idx;
+}
+
 SEXP XGDMatrixMakeSlicesDMatrix_R(SEXP handle, SEXP folds) {
   if (!Rf_isVectorList(folds)) {
     return R_NilValue;
@@ -161,19 +179,12 @@ SEXP XGDMatrixMakeSlicesDMatrix_R(SEXP handle, SEXP folds) {
   SEXP ret;
   R_API_BEGIN();
 
-  std::vector<std::vector<size_t>> indices;
-  for (auto i = 0; i < Rf_length(folds); ++i) {
-    auto fold = VECTOR_ELT(folds, i);
-
-    indices.emplace_back();
-    indices.back().resize(Rf_length(fold), 0);
-    for (int i = 0; i < Rf_length(fold); ++i) {
-      indices.back()[i] = INTEGER(fold)[i] - 1;
-    }
-  }
+  auto indices = extract_folds(folds);
 
   SlicesHandle res;
-  CHECK_CALL(XGDMatrixMakeSlices(R_ExternalPtrAddr(handle), indices, &res));
+  CHECK_CALL(XGDMatrixMakeSlicesDMatrix(R_ExternalPtrAddr(handle), 
+                                        std::move(indices), 
+                                        &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _SlicesFinalizer, TRUE);
   R_API_END();
@@ -203,10 +214,11 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
       col_widths.push_back(Rf_nlevels(col));
 
       int const* ptr = INTEGER(col);
-      col_creators.emplace_back([ptr](size_t const row_idx, bst_uint* col_idx, bst_float *val) {
-        *col_idx += static_cast<bst_float>(ptr[row_idx]) - 1;
-        *val = 1.;
-      });
+      col_creators.emplace_back(
+        [ptr](size_t const row_idx, bst_uint* col_idx, bst_float *val) {
+          *col_idx += static_cast<bst_float>(ptr[row_idx]) - 1;
+          *val = 1.;
+        });
       continue;
     }
 
@@ -215,16 +227,18 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
     case INTSXP:
       col_widths.push_back(1);
       int const* ptr = INTEGER(col);
-      col_creators.emplace_back([ptr](size_t const row_idx, bst_uint*, bst_float *val) {
-        *val = static_cast<bst_float>(ptr[row_idx]);
-      });
+      col_creators.emplace_back(
+        [ptr](size_t const row_idx, bst_uint*, bst_float *val) {
+          *val = static_cast<bst_float>(ptr[row_idx]);
+        });
       break;
     case REALSXP:
       col_widths.push_back(1);
       double const* ptr = REAL(col);
-      col_creators.emplace_back([ptr](size_t const row_idx, bst_uint*, bst_float *val) {
-        *val = static_cast<bst_float>(ptr[row_idx]);
-      });
+      col_creators.emplace_back(
+        [ptr](size_t const row_idx, bst_uint*, bst_float *val) {
+          *val = static_cast<bst_float>(ptr[row_idx]);
+        });
       break;
     default:
       throw std::runtime_error("unknown column type!");
@@ -232,8 +246,19 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
     };
   }
 
+  if(TYPEOF(labels) != REALSXP) {
+    throw std::runtime_error("labels must be double");
+  }
+
+  auto indices = extract_folds(folds);
+
   SlicesHandle res;
-  CHECK_CALL(XGDMatrixMakeSlicesDataFrame(row_count, col_widths, col_creators, labels, indices, &res));
+  CHECK_CALL(XGDMatrixMakeSlicesDataFrame(row_count, 
+                                          col_widths, 
+                                          col_creators, 
+                                          REAL(labels), 
+                                          std::move(indices), 
+                                          &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _SlicesFinalizer, TRUE);
   R_API_END();
