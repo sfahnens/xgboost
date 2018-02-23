@@ -80,6 +80,15 @@ struct Slice {
 std::vector<Slice> make_slices(DMatrix* mat,
                                std::vector<std::vector<size_t>> const& indices);
 
+std::vector<Slice> make_slices(
+    size_t row_count,
+    std::vector<size_t> const& col_widths,
+    std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
+      col_creators,
+    double const* labels,
+    std::vector<std::vector<size_t>> indices
+  );
+
 template <typename DType>
 struct VectorDataIter : public dmlc::DataIter<DType> {
   virtual ~VectorDataIter() = default;

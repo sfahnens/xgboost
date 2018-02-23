@@ -583,9 +583,17 @@ XGB_DLL int XGDMatrixMakeSlicesDataFrame(
     std::vector<std::vector<size_t>> indices,
     SlicesHandle *out) {
   API_BEGIN();
+  using out_t = std::shared_ptr<std::vector<data::Slice>>;
+  out_t* typed_out = new out_t(new std::vector<data::Slice>{});
 
-  // TODO
+  auto slices = data::make_slices(row_count, 
+                                  col_widths, 
+                                  col_creators,
+                                  labels,
+                                  indices);
+  std::swap(slices, **typed_out);
 
+  *out = typed_out;
   API_END();
 }
 

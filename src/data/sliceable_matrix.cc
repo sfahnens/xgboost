@@ -171,6 +171,55 @@ std::vector<Slice> make_slices(
   return slices;
 }
 
+std::vector<Slice> make_slices(
+    size_t row_count,
+    std::vector<size_t> const& col_widths,
+    std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
+      col_creators,
+    double const* labels,
+    std::vector<std::vector<size_t>> indices
+  ) {
+  std::vector<Slice> slices;
+
+  std::vector<size_t> col_offsets;
+  col_offsets.push_back(0);
+  for(auto const& w : col_widths) {
+    col_offsets.push_back(w + col_offsets.back());
+  }
+
+  for(auto const& idx : indices) {
+    Page rows;
+
+    // all rows have exactly the same length
+    rows.ptr_.resize(idx.size() + 1);
+    std::fill(begin(rows.ptr_) + 1, end(rows.ptr), col_creators.size());
+
+    rows.data.resize(col_creators.size() * idx.size());
+    for(auto const& i : idx) {
+      verify(i < row_count, "invalid index");
+      for(auto c = 0ul; c <. col_creators.size(); ++c) {
+        rows.data_.emplace_back(col_offsets[c], 0);
+        col_creators[c](i, &rows.data_.back().index, &rows.data_.fvalue);
+      }
+    }
+
+    slices.emplace_back(std::move(rows));
+  }
+
+  // finalize slices
+  MetaInfo nfo;
+  nfo.num_col = col_offsets.back();
+
+  nfo.labels.resize(row_count, 0.);
+  for(auto i = 0ul; i < row_count; ++i) {
+    nfo.labels[i] = labels[i];
+  }
+
+  finalizes_slices(rows, nfo, indices);
+
+  return rows;
+}
+
 bool ColBatchIter::Next() {
   if (slice_idx_ >= slices_.size()) {
     return false;
