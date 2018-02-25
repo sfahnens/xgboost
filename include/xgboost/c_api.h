@@ -10,6 +10,7 @@
 #ifdef __cplusplus
 #define XGB_EXTERN_C extern "C"
 #include <cstdio>
+#include <functional>
 #else
 #define XGB_EXTERN_C
 #include <stdio.h>
@@ -27,6 +28,8 @@
 
 // manually define unsigned long
 typedef uint64_t bst_ulong;  // NOLINT(*)
+typedef uint32_t bst_uint;  // NOLINT(*)
+typedef float bst_float;  // NOLINT(*)
 
 
 /*! \brief handle to DMatrix */
