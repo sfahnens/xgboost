@@ -154,13 +154,17 @@ SEXP XGDMatrixSliceDMatrix_R(SEXP handle, SEXP idxset) {
 }
 
 std::vector<std::vector<size_t>> extract_folds(SEXP folds) {
-  if(TYPEOF(folds) != INTSXP) {
-    throw std::runtime_error("folds must be integer")
+  if (!Rf_isVectorList(folds)) {
+    throw dmlc::Error("folds must be list");
   }
 
   std::vector<std::vector<size_t>> idx;
   for (auto i = 0; i < Rf_length(folds); ++i) {
     auto fold = VECTOR_ELT(folds, i);
+
+    if(TYPEOF(fold) != INTSXP) {
+      throw dmlc::Error("fold must be integer");
+    }
 
     idx.emplace_back();
     idx.back().resize(Rf_length(fold), 0);
@@ -172,18 +176,14 @@ std::vector<std::vector<size_t>> extract_folds(SEXP folds) {
 }
 
 SEXP XGDMatrixMakeSlicesDMatrix_R(SEXP handle, SEXP folds) {
-  if (!Rf_isVectorList(folds)) {
-    return R_NilValue;
-  }
-
   SEXP ret;
   R_API_BEGIN();
 
   auto indices = extract_folds(folds);
 
   SlicesHandle res;
-  CHECK_CALL(XGDMatrixMakeSlicesDMatrix(R_ExternalPtrAddr(handle), 
-                                        std::move(indices), 
+  CHECK_CALL(XGDMatrixMakeSlicesDMatrix(R_ExternalPtrAddr(handle),
+                                        std::move(indices),
                                         &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _SlicesFinalizer, TRUE);
@@ -207,7 +207,7 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
     auto const& col = VECTOR_ELT(df, i);
 
     if(Rf_length(col) != row_count) {
-      throw std::runtime_error("inconsistent row counts!");
+      throw dmlc::Error("inconsistent row counts!");
     }
 
     if(Rf_isFactor(col)) {
@@ -225,39 +225,43 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
     switch(TYPEOF(col)) {
     case LGLSXP:
     case INTSXP:
-      col_widths.push_back(1);
-      int const* ptr = INTEGER(col);
-      col_creators.emplace_back(
-        [ptr](size_t const row_idx, bst_uint*, bst_float *val) {
-          *val = static_cast<bst_float>(ptr[row_idx]);
-        });
+      {
+        col_widths.push_back(1);
+        int const* ptr = INTEGER(col);
+        col_creators.emplace_back(
+          [ptr](size_t const row_idx, bst_uint*, bst_float *val) {
+            *val = static_cast<bst_float>(ptr[row_idx]);
+          });
+      }
       break;
     case REALSXP:
-      col_widths.push_back(1);
-      double const* ptr = REAL(col);
-      col_creators.emplace_back(
-        [ptr](size_t const row_idx, bst_uint*, bst_float *val) {
-          *val = static_cast<bst_float>(ptr[row_idx]);
-        });
+      {
+        col_widths.push_back(1);
+        double const* ptr = REAL(col);
+        col_creators.emplace_back(
+          [ptr](size_t const row_idx, bst_uint*, bst_float *val) {
+            *val = static_cast<bst_float>(ptr[row_idx]);
+          });
+      }
       break;
     default:
-      throw std::runtime_error("unknown column type!");
+      throw dmlc::Error("unknown column type!");
       break;
     };
   }
 
   if(TYPEOF(labels) != REALSXP) {
-    throw std::runtime_error("labels must be double");
+    throw dmlc::Error("labels must be double");
   }
 
   auto indices = extract_folds(folds);
 
   SlicesHandle res;
-  CHECK_CALL(XGDMatrixMakeSlicesDataFrame(row_count, 
-                                          col_widths, 
-                                          col_creators, 
-                                          REAL(labels), 
-                                          std::move(indices), 
+  CHECK_CALL(XGDMatrixMakeSlicesDataFrame(row_count,
+                                          col_widths,
+                                          col_creators,
+                                          REAL(labels),
+                                          std::move(indices),
                                           &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _SlicesFinalizer, TRUE);

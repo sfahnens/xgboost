@@ -11,6 +11,7 @@
 #define XGB_EXTERN_C extern "C"
 #include <cstdio>
 #include <functional>
+#include <vector>
 #else
 #define XGB_EXTERN_C
 #include <stdio.h>

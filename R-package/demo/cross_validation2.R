@@ -16,7 +16,7 @@ xgb.cv(param, dtrain, nround, nfold=5, metrics={'error'})
 # xgb.cv_xx(param, dtrain, nround, nfold=5, metrics={'error'})
 
 folds <- xgboost:::generate.cv.folds(5, length(agaricus.train$label), TRUE, agaricus.train$label, list(objective='binary:logistic'))
-slices <- xgb.cv2.makeSlices(dtrain, folds)
+slices <- xgb.cv2.makeSlices(folds, dtrain)
 
 data_pairs <- eval(lapply(1:5, function(i) {
   cat(sprintf('make data pairs %s\n', i))
