@@ -86,7 +86,7 @@ std::vector<Slice> make_slices(
     std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
       col_creators,
     double const* labels,
-    std::vector<std::vector<size_t>> indices
+    std::vector<std::vector<size_t>> const& indices
   );
 
 template <typename DType>

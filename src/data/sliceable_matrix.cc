@@ -177,7 +177,7 @@ std::vector<Slice> make_slices(
     std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
       col_creators,
     double const* labels,
-    std::vector<std::vector<size_t>> indices
+    std::vector<std::vector<size_t>> const& indices
   ) {
   std::vector<Slice> slices;
 
@@ -268,9 +268,9 @@ void merge_vector(MetaInfo& info, std::vector<Slice> const& slices,
 
 SliceableMatrix::SliceableMatrix(std::shared_ptr<std::vector<Slice>> slices,
                                  std::vector<size_t> active)
-    : slices_(std::move(slices)),
-      active_(std::move(active)),
-      col_access_initialized_(false) {
+    : col_access_initialized_(false),
+      slices_(std::move(slices)),
+      active_(std::move(active)) {
   verify(std::all_of(begin(active_), end(active_),
                      [this](size_t a) { return a < slices_->size(); }),
          "invalid active slice");

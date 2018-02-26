@@ -559,9 +559,10 @@ XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
   API_END();
 }
 
-XGB_DLL int XGDMatrixMakeSlicesDMatrix(DMatrixHandle handle,
-                                       std::vector<std::vector<size_t>> indices,
-                                       SlicesHandle *out) {
+XGB_DLL int XGDMatrixMakeSlicesDMatrix(
+    DMatrixHandle handle,
+    std::vector<std::vector<size_t>> const& indices,
+    SlicesHandle *out) {
   API_BEGIN();
   using out_t = std::shared_ptr<std::vector<data::Slice>>;
   out_t* typed_out = new out_t(new std::vector<data::Slice>{});
@@ -580,7 +581,7 @@ XGB_DLL int XGDMatrixMakeSlicesDataFrame(
     std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
       col_creators,
     double const* labels,
-    std::vector<std::vector<size_t>> indices,
+    std::vector<std::vector<size_t>> const& indices,
     SlicesHandle *out) {
   API_BEGIN();
   using out_t = std::shared_ptr<std::vector<data::Slice>>;

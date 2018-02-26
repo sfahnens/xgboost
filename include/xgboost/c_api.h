@@ -241,9 +241,10 @@ XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
                                   bst_ulong len,
                                   DMatrixHandle *out);
 
-XGB_DLL int XGDMatrixMakeSlicesDMatrix(DMatrixHandle handle,
-                                       std::vector<std::vector<size_t>> indices,
-                                       SlicesHandle *out);
+XGB_DLL int XGDMatrixMakeSlicesDMatrix(
+    DMatrixHandle handle,
+    std::vector<std::vector<size_t>> const& indices,
+    SlicesHandle *out);
 
 XGB_DLL int XGDMatrixMakeSlicesDataFrame(
     size_t row_count,
@@ -251,7 +252,7 @@ XGB_DLL int XGDMatrixMakeSlicesDataFrame(
     std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
       col_creators,
     double const* labels,
-    std::vector<std::vector<size_t>> indices,
+    std::vector<std::vector<size_t>> const& indices,
     SlicesHandle *out);
 
 XGB_DLL int XGDMatrixSlicesToMatrix(SlicesHandle handle,

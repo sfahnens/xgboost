@@ -192,7 +192,7 @@ SEXP XGDMatrixMakeSlicesDMatrix_R(SEXP handle, SEXP folds) {
   return ret;
 }
 
-XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
+XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP folds, SEXP df, SEXP label) {
   SEXP ret = R_NilValue;
   R_API_BEGIN();
 
@@ -201,12 +201,15 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
       std::function<void(size_t const, bst_uint*, bst_float*)>>
       col_creators;
 
-  size_t row_count = Rf_length(labels);
+  if(TYPEOF(label) != REALSXP) {
+    throw dmlc::Error("label must be double");
+  }
+  size_t row_count = Rf_length(label);
 
   for(int i = 0; i < Rf_length(df); ++i) {
     auto const& col = VECTOR_ELT(df, i);
 
-    if(Rf_length(col) != row_count) {
+    if(static_cast<size_t>(Rf_length(col)) != row_count) {
       throw dmlc::Error("inconsistent row counts!");
     }
 
@@ -250,18 +253,14 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds) {
     };
   }
 
-  if(TYPEOF(labels) != REALSXP) {
-    throw dmlc::Error("labels must be double");
-  }
-
   auto indices = extract_folds(folds);
 
   SlicesHandle res;
   CHECK_CALL(XGDMatrixMakeSlicesDataFrame(row_count,
                                           col_widths,
                                           col_creators,
-                                          REAL(labels),
-                                          std::move(indices),
+                                          REAL(label),
+                                          indices,
                                           &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _SlicesFinalizer, TRUE);

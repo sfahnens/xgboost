@@ -60,7 +60,7 @@ XGB_DLL SEXP XGDMatrixCreateFromCSC_R(SEXP indptr,
 XGB_DLL SEXP XGDMatrixSliceDMatrix_R(SEXP handle, SEXP idxset);
 
 XGB_DLL SEXP XGDMatrixMakeSlicesDMatrix_R(SEXP handle, SEXP folds);
-XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP df, SEXP labels, SEXP folds);
+XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP folds, SEXP df, SEXP label);
 
 XGB_DLL SEXP XGDMatrixSlicesToMatrix_R(SEXP handle, SEXP active_slices);
 
