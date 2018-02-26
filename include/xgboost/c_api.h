@@ -267,6 +267,8 @@ XGB_DLL int XGDMatrixFree(DMatrixHandle handle);
 
 XGB_DLL int SlicesFree(SlicesHandle handle);
 
+XGB_DLL int XGDMatrixDiff(DMatrixHandle handle1, DMatrixHandle handle2);
+
 /*!
  * \brief load a data matrix into binary file
  * \param handle a instance of data matrix

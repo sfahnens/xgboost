@@ -15,6 +15,7 @@
 #include "./c_api_error.h"
 #include "../data/simple_csr_source.h"
 #include "../data/sliceable_matrix.h"
+#include "../data/diff_dmatrix.h"
 #include "../common/math.h"
 #include "../common/io.h"
 #include "../common/group_data.h"
@@ -617,6 +618,14 @@ XGB_DLL int XGDMatrixFree(DMatrixHandle handle) {
 XGB_DLL int SlicesFree(SlicesHandle handle) {
   API_BEGIN();
   delete static_cast<std::shared_ptr<std::vector<data::Slice>>*>(handle);
+  API_END();
+}
+
+XGB_DLL int XGDMatrixDiff(DMatrixHandle handle1, DMatrixHandle handle2) {
+  API_BEGIN();
+  auto mat1 = static_cast<std::shared_ptr<DMatrix>*>(handle1);
+  auto mat2 = static_cast<std::shared_ptr<DMatrix>*>(handle2);
+  data::diff_dmatrix(**mat1, **mat2);
   API_END();
 }
 

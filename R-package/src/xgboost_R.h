@@ -64,6 +64,8 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP folds, SEXP df, SEXP label);
 
 XGB_DLL SEXP XGDMatrixSlicesToMatrix_R(SEXP handle, SEXP active_slices);
 
+XGB_DLL SEXP XGDMatrixDiff_R(SEXP handle1, SEXP handle2);
+
 /*!
  * \brief load a data matrix into binary file
  * \param handle a instance of data matrix

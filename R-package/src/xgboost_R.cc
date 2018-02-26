@@ -227,6 +227,8 @@ XGB_DLL SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP folds, SEXP df, SEXP label) {
 
     switch(TYPEOF(col)) {
     case LGLSXP:
+      throw dmlc::Error("logical columns are not supported for now");
+      break;
     case INTSXP:
       {
         col_widths.push_back(1);
@@ -287,6 +289,15 @@ SEXP XGDMatrixSlicesToMatrix_R(SEXP handle, SEXP active_slices) {
   UNPROTECT(1);
   return ret;
 }
+
+XGB_DLL SEXP XGDMatrixDiff_R(SEXP handle1, SEXP handle2) {
+  R_API_BEGIN();
+  CHECK_CALL(XGDMatrixDiff(R_ExternalPtrAddr(handle1),
+                           R_ExternalPtrAddr(handle2)));
+  R_API_END();
+  return R_NilValue;
+}
+
 
 SEXP XGDMatrixSaveBinary_R(SEXP handle, SEXP fname, SEXP silent) {
   R_API_BEGIN();

@@ -76,6 +76,12 @@ xgb.get.DMatrix <- function(data, label = NULL, missing = NA, weight = NULL) {
   return (dtrain)
 }
 
+#' @export
+xgb.diff.DMatrix <- function(mat1, mat2) {
+  .Call(XGDMatrixDiff_R, mat1, mat2)
+  print("looks equal.")
+  invisible()
+}
 
 #' Dimensions of xgb.DMatrix
 #' 

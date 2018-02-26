@@ -42,6 +42,7 @@ extern SEXP XGDMatrixSliceDMatrix_R(SEXP, SEXP);
 extern SEXP XGDMatrixMakeSlicesDMatrix_R(SEXP, SEXP);
 extern SEXP XGDMatrixMakeSlicesDataFrame_R(SEXP, SEXP, SEXP);
 extern SEXP XGDMatrixSlicesToMatrix_R(SEXP, SEXP);
+extern SEXP XGDMatrixDiff_R(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
   {"XGBoosterBoostOneIter_R",     (DL_FUNC) &XGBoosterBoostOneIter_R,     4},
@@ -71,6 +72,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"XGDMatrixMakeSlicesDMatrix_R",   (DL_FUNC) &XGDMatrixMakeSlicesDMatrix_R,   2},
   {"XGDMatrixMakeSlicesDataFrame_R", (DL_FUNC) &XGDMatrixMakeSlicesDataFrame_R, 3},
   {"XGDMatrixSlicesToMatrix_R",   (DL_FUNC) &XGDMatrixSlicesToMatrix_R,   2},
+  {"XGDMatrixDiff_R",             (DL_FUNC) &XGDMatrixDiff_R,   2},
   {NULL, NULL, 0}
 };
 

@@ -129,7 +129,8 @@ void finalizes_slices(std::vector<Slice>& slices, MetaInfo const& nfo,
 
     offset += s.row_count();
   }
-  verify(offset == nfo.num_row, "sum row size mismatch");
+  verify(offset == nfo.num_row,
+         "row count mismatch %zu != %zu", offset, nfo.num_row);
 }
 
 std::vector<Slice> make_slices(
@@ -194,7 +195,7 @@ std::vector<Slice> make_slices(
     rows.ptr_.resize(idx.size() + 1);
     std::fill(begin(rows.ptr_) + 1, end(rows.ptr_), col_creators.size());
 
-    rows.data_.resize(col_creators.size() * idx.size());
+    rows.data_.reserve(col_creators.size() * idx.size());
     for(auto const& i : idx) {
       verify(i < row_count, "invalid index");
       for(auto c = 0ul; c < col_creators.size(); ++c) {
@@ -208,6 +209,7 @@ std::vector<Slice> make_slices(
 
   // finalize slices
   MetaInfo nfo;
+  nfo.num_row = row_count;
   nfo.num_col = col_offsets.back();
 
   nfo.labels.resize(row_count, 0.);
