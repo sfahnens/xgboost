@@ -67,6 +67,7 @@ nb-configuration*
 .pydevproject
 .settings/
 build
+build2
 config.mk
 xgboost
 *.data
@@ -94,3 +95,7 @@ lib/
 metastore_db
 
 plugin/updater_gpu/test/cpp/data
+
+R-package/src/amalgamation/
+R-package/src/rabit/
+R-package/src/src/
