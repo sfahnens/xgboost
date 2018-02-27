@@ -288,13 +288,25 @@ xgb.cv2.makeSlices <- function(folds, data, label=NULL) {
   if(inherits(data, "xgb.DMatrix")) {
     stopifnot(is.null(label))
     handle <- .Call(XGDMatrixMakeSlicesDMatrix_R, data, folds);
+    cnames <- colnames(data)
   } else if(inherits(data, "data.frame")) {
     stopifnot(is.numeric(label))
     handle <- .Call(XGDMatrixMakeSlicesDataFrame_R, folds, data, label);
+
+    cnames <- c()
+    for(cname in colnames(learnData)) {
+      col <- learnData[[cname]]
+
+      if(class(col) == "factor") {
+        cnames <- c(cnames, paste0(cname, levels(col)))
+      } else {
+        cnames <- c(cnames, cname)
+      }
+    }
   } else {
     stop("unknown input for make slices")
   }
-  class(handle) <- "xgb.Slices"
+  attributes(handle) <- list(.cnames=cnames, class="xgb.Slices")
   return(handle)
 }
 
@@ -303,5 +315,8 @@ xgb.cv2.makeSlices <- function(folds, data, label=NULL) {
 xgb.cv2.slicesToMatrix <- function(slices, active_slices) {
   handle <- .Call(XGDMatrixSlicesToMatrix_R, slices, active_slices)
   class(handle) <- "xgb.DMatrix"
+
+  cnames <-  attr(slices, '.cnames')
+  attributes(handle) <- list(.Dimnames = list(NULL, cnames), class = "xgb.DMatrix")
   return(handle)
 }
