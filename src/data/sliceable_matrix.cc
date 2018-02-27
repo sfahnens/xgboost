@@ -191,19 +191,31 @@ std::vector<Slice> make_slices(
   for(auto const& idx : indices) {
     Page rows;
 
-    // all rows have exactly the same length
-    rows.ptr_.resize(idx.size() + 1);
-    std::fill(begin(rows.ptr_) + 1, end(rows.ptr_), col_creators.size());
+    // all rows are present - first zero already set
+    rows.ptr_.reserve(idx.size() + 1);
 
+    // good approximation (only numeric 0 and logic FALSE to much)
     rows.data_.reserve(col_creators.size() * idx.size());
-    for(auto const& i : idx) {
-      verify(i < row_count, "invalid index");
+
+    for(auto const& row_idx : idx) {
+      verify(row_idx < row_count, "invalid index");
+
+      size_t row_size = 0;
       for(auto c = 0ul; c < col_creators.size(); ++c) {
-        rows.data_.emplace_back(col_offsets[c], 0);
-        col_creators[c](i, &rows.data_.back().index, &rows.data_.back().fvalue);
+        bst_uint index = col_offsets[c];
+        bst_float fvalue = 0.;
+
+        col_creators[c](row_idx, &index, &fvalue);
+
+        if(fvalue != 0.) {
+          rows.data_.emplace_back(index, fvalue);
+          ++row_size;
+        }
       }
+      rows.ptr_.push_back(rows.ptr_.back() + row_size);
     }
 
+    rows.data_.shrink_to_fit();
     slices.emplace_back(std::move(rows));
   }
 
