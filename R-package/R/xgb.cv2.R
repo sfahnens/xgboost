@@ -294,8 +294,8 @@ xgb.cv2.makeSlices <- function(folds, data, label=NULL) {
     handle <- .Call(XGDMatrixMakeSlicesDataFrame_R, folds, data, label);
 
     cnames <- c()
-    for(cname in colnames(learnData)) {
-      col <- learnData[[cname]]
+    for(cname in colnames(data)) {
+      col <- data[[cname]]
 
       if(class(col) == "factor") {
         cnames <- c(cnames, paste0(cname, levels(col)))
