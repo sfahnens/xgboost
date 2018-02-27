@@ -3,7 +3,7 @@
 namespace xgboost {
 namespace data {
 
-void diff_meta(MetaInfo const& a, MetaInfo const& b) {
+inline void diff_meta(MetaInfo const& a, MetaInfo const& b) {
   CHECK(a.num_row == b.num_row) << "num_row mismatch";
   CHECK(a.num_col == b.num_col) << "num_col mismatch";
   CHECK(a.num_nonzero == b.num_nonzero) 
@@ -15,7 +15,7 @@ void diff_meta(MetaInfo const& a, MetaInfo const& b) {
   CHECK(a.base_margin == b.base_margin) << "base_margin mismatch";
 }
 
-void diff_dmatrix_by_row(DMatrix& a, DMatrix& b) {
+inline void diff_dmatrix_by_row(DMatrix& a, DMatrix& b) {
   auto* it_a = a.RowIterator();
   it_a->BeforeFirst();
   CHECK(it_a->Next()) << "it_a empty";
@@ -52,7 +52,7 @@ void diff_dmatrix_by_row(DMatrix& a, DMatrix& b) {
   }
 }
 
-void diff_dmatrix(DMatrix& a, DMatrix& b) {
+inline void diff_dmatrix(DMatrix& a, DMatrix& b) {
   CHECK(&a != &b) << "cannot diff a matrix with itself";
 
   diff_meta(a.info(), b.info());

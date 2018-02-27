@@ -39,7 +39,7 @@ dummy.data.table <- function(types = NULL,
   return(setDT(cols))
 }
 
-dt <- dummy.data.table(nrow = 10000000, ncol = 20)
+dt <- dummy.data.table(nrow = 10000, ncol = 20)
 # dt <- dummy.data.table("if", 10)
 
 contr.onehot <- function(lvls, sparse) {
@@ -71,9 +71,18 @@ b <- xgb.cv2.slicesToMatrix(slices, as.integer(1))
 
 xgb.diff.DMatrix(a, b)
 
-system.time({
-  slices2 <- xgb.cv2.makeSlices(folds, dt, label=label)
-  c <- xgb.cv2.slicesToMatrix(slices2, as.integer(1))
-})
+# ---
 
-xgb.diff.DMatrix(a, c)
+folds.b <- xgboost:::generate.cv.folds(3,
+                                       length(label),
+                                       TRUE,
+                                       label,
+                                       list(objective='reg:linear'))
+
+slices.b <- xgb.cv2.makeSlices(folds.b, a)
+mat.b <- xgb.cv2.slicesToMatrix(slices.b, as.integer(1, 2, 3));
+
+slices.b2 <- xgb.cv2.makeSlices(folds.b, dt, label=label)
+mat.b2 <- xgb.cv2.slicesToMatrix(slices.b2, as.integer(1, 2, 3))
+
+xgb.diff.DMatrix(mat.b, mat.b2)
