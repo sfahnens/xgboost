@@ -21,7 +21,7 @@
 #define verify(A, M, ...)        \
   if (!(A)) {                    \
     log_err(M, ##__VA_ARGS__);   \
-    throw std::runtime_error(M); \
+    throw dmlc::Error(M); \
   }
 
 namespace xgboost {
