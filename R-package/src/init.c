@@ -40,6 +40,11 @@ extern SEXP XGDMatrixSaveBinary_R(SEXP, SEXP, SEXP);
 extern SEXP XGDMatrixSetInfo_R(SEXP, SEXP, SEXP);
 extern SEXP XGDMatrixSliceDMatrix_R(SEXP, SEXP);
 
+extern SEXP XGReconfigurableSourceCreateFromDMatrix_R(SEXP, SEXP);
+extern SEXP XGReconfigurableSourceCreateFromDataFrame_R(SEXP, SEXP, SEXP, SEXP);
+extern SEXP XGReconfigurableSourceToDMatrix_R(SEXP, SEXP);
+extern SEXP XGDMatrixDiff_R(SEXP, SEXP);
+
 static const R_CallMethodDef CallEntries[] = {
   {"XGBoosterBoostOneIter_R",     (DL_FUNC) &XGBoosterBoostOneIter_R,     4},
   {"XGBoosterCreate_R",           (DL_FUNC) &XGBoosterCreate_R,           1},
@@ -65,6 +70,12 @@ static const R_CallMethodDef CallEntries[] = {
   {"XGDMatrixSaveBinary_R",       (DL_FUNC) &XGDMatrixSaveBinary_R,       3},
   {"XGDMatrixSetInfo_R",          (DL_FUNC) &XGDMatrixSetInfo_R,          3},
   {"XGDMatrixSliceDMatrix_R",     (DL_FUNC) &XGDMatrixSliceDMatrix_R,     2},
+
+  {"XGReconfigurableSourceCreateFromDMatrix_R",   (DL_FUNC) &XGReconfigurableSourceCreateFromDMatrix_R,   2},
+  {"XGReconfigurableSourceCreateFromDataFrame_R", (DL_FUNC) &XGReconfigurableSourceCreateFromDataFrame_R, 4},
+  {"XGReconfigurableSourceToDMatrix_R",           (DL_FUNC) &XGReconfigurableSourceToDMatrix_R,   2},
+  {"XGDMatrixDiff_R",                             (DL_FUNC) &XGDMatrixDiff_R,   2},
+
   {NULL, NULL, 0}
 };
 

@@ -11,6 +11,7 @@
 #' @param missing a float value to represents missing values in data (used only when input is a dense matrix).
 #'        It is useful when a 0 or some other extreme value represents missing values in data.
 #' @param silent whether to suppress printing an informational message after loading from a file.
+#' @param active_folds indices of folds to use when data is a \code{xgb.reconfigurableSource}
 #' @param ... the \code{info} data could be passed directly as parameters, without creating an \code{info} list.
 #'
 #' @examples
@@ -21,7 +22,7 @@
 #' dtrain <- xgb.DMatrix('xgb.DMatrix.data')
 #' if (file.exists('xgb.DMatrix.data')) file.remove('xgb.DMatrix.data')
 #' @export
-xgb.DMatrix <- function(data, info = list(), missing = NA, silent = FALSE, ...) {
+xgb.DMatrix <- function(data, info = list(), missing = NA, silent = FALSE, active_folds=NULL, ...) {
   cnames <- NULL
   if (typeof(data) == "character") {
     if (length(data) > 1)
@@ -33,6 +34,13 @@ xgb.DMatrix <- function(data, info = list(), missing = NA, silent = FALSE, ...) 
     cnames <- colnames(data)
   } else if (inherits(data, "dgCMatrix")) {
     handle <- .Call(XGDMatrixCreateFromCSC_R, data@p, data@i, data@x, nrow(data))
+    cnames <- colnames(data)
+  } else if (inherits(data, "xgb.reconfigurableSource")) {
+    active_folds = as.integer(active_folds)
+    if(length(active_folds) == 0) {
+      stop("need at least one 'active_fold'")
+    }
+    handle <- .Call(XGReconfigurableSourceToDMatrix_R, data, active_folds)
     cnames <- colnames(data)
   } else {
     stop("xgb.DMatrix does not support construction from ", typeof(data))
@@ -77,6 +85,12 @@ xgb.get.DMatrix <- function(data, label = NULL, missing = NA, weight = NULL) {
   return (dtrain)
 }
 
+#' @export
+xgb.diff.DMatrix <- function(mat1, mat2) {
+  .Call(XGDMatrixDiff_R, mat1, mat2)
+  print("looks equal.")
+  invisible()
+}
 
 #' Dimensions of xgb.DMatrix
 #'

@@ -59,6 +59,16 @@ XGB_DLL SEXP XGDMatrixCreateFromCSC_R(SEXP indptr,
  */
 XGB_DLL SEXP XGDMatrixSliceDMatrix_R(SEXP handle, SEXP idxset);
 
+XGB_DLL SEXP XGReconfigurableSourceCreateFromDMatrix_R(SEXP handle, SEXP folds);
+XGB_DLL SEXP XGReconfigurableSourceCreateFromDataFrame_R(SEXP folds,
+                                                         SEXP df,
+                                                         SEXP label,
+                                                         SEXP weights);
+
+XGB_DLL SEXP XGReconfigurableSourceToDMatrix_R(SEXP handle, SEXP active_slices);
+
+XGB_DLL SEXP XGDMatrixDiff_R(SEXP handle1, SEXP handle2);
+
 /*!
  * \brief load a data matrix into binary file
  * \param handle a instance of data matrix

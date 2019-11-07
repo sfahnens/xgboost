@@ -17,7 +17,10 @@
 #include <memory>
 
 #include "./c_api_error.h"
+#include "../data/reconfigurable_matrix.h"
+#include "../data/reconfigurable_source.h"
 #include "../data/simple_csr_source.h"
+#include "../data/diff_dmatrix.h"
 #include "../common/math.h"
 #include "../common/io.h"
 #include "../common/group_data.h"
@@ -729,10 +732,58 @@ XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
   API_END();
 }
 
+XGB_DLL int XGReconfigurableSourceCreateFromDMatrix(
+    DMatrixHandle handle,
+    std::vector<std::vector<size_t>> const& indices,
+    ReconfigurableSourceHandle *out) {
+  API_BEGIN();
+  auto dmat = static_cast<std::shared_ptr<DMatrix>*>(handle);
+  *out = new std::shared_ptr<data::ReconfigurableSource>(
+      data::ReconfigurableSource::Create(dmat->get(), indices));
+  API_END();
+}
+
+XGB_DLL int XGReconfigurableSourceCreateFromDataFrame(
+    size_t row_count, std::vector<size_t> const& col_widths,
+    std::vector<data::ColCreatorFn> const& col_creators, double const* labels,
+    double const* weights, std::vector<std::vector<size_t>> const& indices,
+    ReconfigurableSourceHandle *out) {
+  API_BEGIN();
+  *out = new std::shared_ptr<data::ReconfigurableSource>(
+      data::ReconfigurableSource::Create(row_count, col_widths, col_creators,
+                                         labels, weights, indices));
+  API_END();
+}
+
+XGB_DLL int XGReconfigurableSourceToDMatrix(ReconfigurableSourceHandle handle,
+                                             std::vector<size_t> const& active,
+                                             DMatrixHandle *out) {
+  API_BEGIN();
+  auto* source = static_cast<data::ReconfigurableSourcePtr*>(handle);
+  *out = new std::shared_ptr<DMatrix>(new data::ReconfigurableMatrix{*source,
+                                                                     active});
+  API_END();
+}
+
+
 XGB_DLL int XGDMatrixFree(DMatrixHandle handle) {
   API_BEGIN();
   CHECK_HANDLE();
   delete static_cast<std::shared_ptr<DMatrix>*>(handle);
+  API_END();
+}
+
+XGB_DLL int XGReconfigurableSourceFree(ReconfigurableSourceHandle handle) {
+  API_BEGIN();
+  delete static_cast<data::ReconfigurableSourcePtr*>(handle);
+  API_END();
+}
+
+XGB_DLL int XGDMatrixDiff(DMatrixHandle handle1, DMatrixHandle handle2) {
+  API_BEGIN();
+  auto mat1 = static_cast<std::shared_ptr<DMatrix>*>(handle1);
+  auto mat2 = static_cast<std::shared_ptr<DMatrix>*>(handle2);
+  data::DiffDMatrix(**mat1, **mat2);
   API_END();
 }
 

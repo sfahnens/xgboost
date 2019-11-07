@@ -11,6 +11,8 @@
 #define XGB_EXTERN_C extern "C"
 #include <cstdio>
 #include <cstdint>
+#include <functional>
+#include <vector>
 #else
 #define XGB_EXTERN_C
 #include <stdio.h>
@@ -25,10 +27,14 @@
 
 // manually define unsigned long
 typedef uint64_t bst_ulong;  // NOLINT(*)
+typedef uint32_t bst_uint;  // NOLINT(*)
+typedef float bst_float;  // NOLINT(*)
 
 
 /*! \brief handle to DMatrix */
-typedef void *DMatrixHandle;  // NOLINT(*)
+typedef void *DMatrixHandle;
+/*! \brief handle to ReconfigurableSource */
+typedef void *ReconfigurableSourceHandle;
 /*! \brief handle to Booster */
 typedef void *BoosterHandle;  // NOLINT(*)
 /*! \brief handle to a data iterator */
@@ -221,11 +227,32 @@ XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
                                   const int *idxset,
                                   bst_ulong len,
                                   DMatrixHandle *out);
+
+XGB_DLL int XGReconfigurableSourceCreateFromDMatrix(
+    DMatrixHandle handle,
+    std::vector<std::vector<size_t>> const& indices,
+    ReconfigurableSourceHandle *out);
+
+XGB_DLL int XGReconfigurableSourceCreateFromDataFrame(
+    size_t row_count, std::vector<size_t> const& col_widths,
+    std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> const&
+      col_creators, double const* labels, double const* weights,
+    std::vector<std::vector<size_t>> const& indices,
+    ReconfigurableSourceHandle *out);
+
+XGB_DLL int XGReconfigurableSourceToDMatrix(ReconfigurableSourceHandle handle,
+                                             std::vector<size_t> const& active,
+                                             DMatrixHandle *out);
 /*!
  * \brief free space in data matrix
  * \return 0 when success, -1 when failure happens
  */
 XGB_DLL int XGDMatrixFree(DMatrixHandle handle);
+
+XGB_DLL int XGReconfigurableSourceFree(ReconfigurableSourceHandle handle);
+
+XGB_DLL int XGDMatrixDiff(DMatrixHandle handle1, DMatrixHandle handle2);
+
 /*!
  * \brief load a data matrix into binary file
  * \param handle a instance of data matrix

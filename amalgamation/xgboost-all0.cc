@@ -29,6 +29,9 @@
 
 // data
 #include "../src/data/data.cc"
+#include "../src/data/diff_dmatrix.cc"
+#include "../src/data/reconfigurable_matrix.cc"
+#include "../src/data/reconfigurable_source.cc"
 #include "../src/data/simple_csr_source.cc"
 #include "../src/data/simple_dmatrix.cc"
 #include "../src/data/sparse_page_raw_format.cc"

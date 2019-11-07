@@ -15,6 +15,7 @@
 *.Rcheck
 *.rds
 *.tar.gz
+#*txt*
 *conf
 *buffer
 *model
@@ -46,6 +47,7 @@ Debug
 *.cpage.col
 *.cpage
 *.Rproj
+./xgboost
 ./xgboost.mpi
 ./xgboost.mock
 #.Rbuildignore
@@ -65,10 +67,13 @@ nb-configuration*
 .pydevproject
 .settings/
 build
+build2
+/build*
 config.mk
-/xgboost
+xgboost
 *.data
 build_plugin
+dmlc-core
 .idea
 recommonmark/
 tags
@@ -92,6 +97,10 @@ metastore_db
 
 plugin/updater_gpu/test/cpp/data
 /include/xgboost/build_config.h
+
+R-package/src/amalgamation/
+R-package/src/rabit/
+R-package/src/src/
 
 # files from R-package source install
 **/config.status
