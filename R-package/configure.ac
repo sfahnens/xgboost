@@ -2,7 +2,7 @@
 
 AC_PREREQ(2.62)
 
-AC_INIT([xgboost],[0.6-3],[],[xgboost],[])
+AC_INIT([myxgboost],[0.6-3],[],[myxgboost],[])
 
 OPENMP_CXXFLAGS=""
 

@@ -1,4 +1,4 @@
-Package: xgboost
+Package: myxgboost
 Type: Package
 Title: Extreme Gradient Boosting
 Version: 0.90.0.1
