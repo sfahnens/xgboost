@@ -31,7 +31,12 @@ struct SimpleArray {
   }
 
   void resize(size_t n) {
-    T* ptr = static_cast<T*>(malloc(n*sizeof(T)));
+    T* ptr;
+    if(n > n_) {
+      ptr = static_cast<T*>(calloc(n, sizeof(T)));
+    } else {
+      ptr = static_cast<T*>(malloc(n*sizeof(T)));
+    }
     memcpy(ptr, ptr_, n_ * sizeof(T));
     free(ptr_);
     ptr_ = ptr;
