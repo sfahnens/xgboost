@@ -11,14 +11,15 @@ struct ReconfigurableBatch {
   using ConfigState = std::bitset<64>;
 
   ReconfigurableBatch() = default;
-  ReconfigurableBatch(SparsePage rows) : rows_(std::move(rows)) {}
+  ReconfigurableBatch(SparsePage rows)
+      : rows_(new SparsePage(std::move(rows))) {}
 
   ConfigState config_state_{0};
 
   MetaInfo info_;
 
-  SparsePage rows_;  // csr data
-  SparsePage cols_;  // csc data
+  std::unique_ptr<SparsePage> rows_;  // csr data
+  std::unique_ptr<SparsePage> cols_;  // csc data
 };
 
 struct ReconfigurableSource;
@@ -40,6 +41,7 @@ struct ReconfigurableSource : public DataSource {
       std::vector<ColCreatorFn> const& col_creators, double const* labels,
       double const* weights, std::vector<std::vector<size_t>> const& indices);
 
+  void LazyInitializeColumns();
   void MaybeReconfigure(ReconfigurableBatch::ConfigState);
 
   bool Next() override;

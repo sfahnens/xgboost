@@ -20,12 +20,12 @@ struct ReconfigurableBatchIteratorImpl : public BatchIteratorImpl {
   SparsePage& operator*() override {
     auto& batch = src_->batches_[idx_];
     CHECK(batch.config_state_ == config_state_) << "invalid config_state";
-    return UseRowPage ? batch.rows_ : batch.cols_;
+    return UseRowPage ? *batch.rows_ : *batch.cols_;
   }
   const SparsePage& operator*() const override {
     auto const& batch = src_->batches_[idx_];
     CHECK(batch.config_state_ == config_state_) << "invalid config_state";
-    return UseRowPage ? batch.rows_ : batch.cols_;
+    return UseRowPage ? *batch.rows_ : *batch.cols_;
   }
   void operator++() override {
     ++idx_;
@@ -75,8 +75,9 @@ ReconfigurableMatrix::ReconfigurableMatrix(ReconfigurableSourcePtr source,
     info_.num_nonzero_ += s.info_.num_nonzero_;
 
     CHECK(info_.num_col_ == s.info_.num_col_) << "col count mismatch";
-    for (auto i = 0u; i < col_sizes_.size(); ++i) {
-      col_sizes_[i] += s.cols_[i].size();
+
+    for(auto const& e : s.rows_->data.HostVector()) {
+      ++col_sizes_[e.index];
     }
   }
 
@@ -121,6 +122,7 @@ BatchSet ReconfigurableMatrix::GetColumnBatches() {
 }
 
 BatchSet ReconfigurableMatrix::GetSortedColumnBatches() {
+  source_->LazyInitializeColumns();
   source_->MaybeReconfigure(this_config_state_);
   return BatchSet{BatchIterator{new ReconfigurableBatchIteratorImpl<false>(
       source_.get(), this_config_state_)}};

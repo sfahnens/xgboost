@@ -117,12 +117,13 @@ void FinalizeBatches(std::vector<ReconfigurableBatch>& batches,
     s.config_state_.set(i);  // XXX !?
 
     auto const& idx = indices.at(i);
-    CHECK(idx.size() == s.rows_.Size())
-        << "row size mismatch idx=" << idx.size() << " data=" << s.rows_.Size();
+    CHECK(idx.size() == s.rows_->Size())
+        << "row size mismatch idx=" << idx.size()
+        << " data=" << s.rows_->Size();
 
-    s.info_.num_row_ = s.rows_.Size();
+    s.info_.num_row_ = s.rows_->Size();
     s.info_.num_col_ = nfo.num_col_;
-    s.info_.num_nonzero_ = s.rows_.data.Size();
+    s.info_.num_nonzero_ = s.rows_->data.Size();
 
     CopyInfoBatch(nfo, s.info_, idx, &MetaInfo::labels_);
     CopyInfoBatch(nfo, s.info_, idx, &MetaInfo::root_index_);
@@ -130,10 +131,7 @@ void FinalizeBatches(std::vector<ReconfigurableBatch>& batches,
     CopyInfoBatch(nfo, s.info_, idx, &MetaInfo::weights_);
     CopyInfoBatch(nfo, s.info_, idx, &MetaInfo::base_margin_);
 
-    s.cols_ = s.rows_.GetTranspose(s.info_.num_col_);
-    s.cols_.SortRows();
-
-    offset += s.rows_.Size();
+    offset += s.rows_->Size();
   }
   CHECK(offset == nfo.num_row_)
       << "row count mismatch" << offset << " != " << nfo.num_row_;
@@ -152,27 +150,40 @@ void CopyInfoBatch(MetaInfo const& src, MetaInfo& dst,
   }
 }
 
+void ReconfigurableSource::LazyInitializeColumns() {
+  if (batches_.empty() || batches_.front().cols_) {
+    return;  // already initialized
+  }
+
+  for(auto& b : batches_) {
+    b.cols_.reset(new SparsePage(b.rows_->GetTranspose(b.info_.num_col_)));
+    b.cols_->SortRows();
+  }
+}
+
 void ReconfigurableSource::MaybeReconfigure(
     ReconfigurableBatch::ConfigState target_state) {
   size_t offset = 0;
   for (auto i = 0; i < batches_.size(); ++i) {
-    auto& s = batches_[i];
-    if (!target_state.test(i) || s.config_state_ == target_state) {
+    auto& b = batches_[i];
+    if (!target_state.test(i) || b.config_state_ == target_state) {
       continue;
     }
 
-    auto old_offset = s.rows_.base_rowid;
+    auto old_offset = b.rows_->base_rowid;
 
     // rows: just set global offset
-    s.rows_.base_rowid = offset;
+    b.rows_->base_rowid = offset;
 
-    // cols: shift each entry -> subtract old offset; add new offset
-    for (auto& entry : s.cols_.data.HostVector()) {
-      entry.index += -old_offset + offset;
+    if (b.cols_) {
+      // cols: shift each entry -> subtract old offset; add new offset
+      for (auto& entry : b.cols_->data.HostVector()) {
+        entry.index += -old_offset + offset;
+      }
     }
 
-    offset += s.info_.num_row_;
-    s.config_state_ = target_state;
+    offset += b.info_.num_row_;
+    b.config_state_ = target_state;
   }
 }
 
@@ -184,7 +195,7 @@ void ReconfigurableSource::BeforeFirst() {
 }
 const SparsePage& ReconfigurableSource::Value() const {
   throw std::runtime_error{"not implemeted: ReconfigurableSource::Value()"};
-  return batches_.at(0).rows_;
+  return *batches_.at(0).rows_;
 }
 
 }  // namespace data
