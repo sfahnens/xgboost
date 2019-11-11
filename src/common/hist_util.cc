@@ -286,7 +286,7 @@ void GHistIndexMatrix::Init(DMatrix* p_fmat, int max_num_bins) {
       }
     }
 
-    index.resize(row_ptr.back());
+    index.resize(row_ptr[rbegin + batch.Size()]);
 
     CHECK_GT(cut.cut.size(), 0U);
 
