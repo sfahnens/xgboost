@@ -5,6 +5,7 @@
 #include <xgboost/c_api.h>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -197,16 +198,14 @@ XGB_DLL SEXP XGReconfigurableSourceCreateFromDataFrame_R(SEXP folds,
   R_API_BEGIN();
 
   std::vector<size_t> widths;
-  std::vector<std::function<void(size_t const, bst_uint *, bst_float *)>> fn;
+  std::vector<std::function<void(size_t const, bst_uint*, bst_float*)>> fn;
 
-  if (TYPEOF(label) != REALSXP) {
-    throw dmlc::Error("label must be double");
-  }
-  size_t row_count = Rf_length(label);
-
+  R_xlen_t row_count = std::numeric_limits<R_xlen_t>::max();
   for (int i = 0; i < Rf_length(df); ++i) {
-    auto const &col = VECTOR_ELT(df, i);
-    if (static_cast<size_t>(Rf_length(col)) != row_count) {
+    auto const& col = VECTOR_ELT(df, i);
+    if (row_count = std::numeric_limits<R_xlen_t>::max()) {
+      row_count = Rf_xlength(col);
+    } else if (Rf_xlength(col) != row_count) {
       throw dmlc::Error("inconsistent row counts!");
     }
 
@@ -246,10 +245,28 @@ XGB_DLL SEXP XGReconfigurableSourceCreateFromDataFrame_R(SEXP folds,
     };
   }
 
+  if (label != R_NilValue) {
+    if (TYPEOF(label) != REALSXP) {
+      throw dmlc::Error("label must be double");
+    }
+    if (Rf_xlength(label) != row_count) {
+      throw dmlc::Error("inconsistent row counts! (label)");
+    }
+  }
+  if (weights != R_NilValue) {
+    if (TYPEOF(weights) != REALSXP) {
+      throw dmlc::Error("weights must be double");
+    }
+    if (Rf_xlength(weights) != row_count) {
+      throw dmlc::Error("inconsistent row counts! (weights)");
+    }
+  }
+
   ReconfigurableSourceHandle res;
   CHECK_CALL(XGReconfigurableSourceCreateFromDataFrame(
-      row_count, widths, fn, REAL(label),
-      weights == R_NilValue ? nullptr : REAL(weights),
+      row_count, widths, fn,  //
+      label == R_NilValue ? nullptr : REAL(label),  //
+      weights == R_NilValue ? nullptr : REAL(weights),  //
       extract_folds(folds), &res));
   ret = PROTECT(R_MakeExternalPtr(res, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(ret, _ReconfigurableSourceFinalizer, TRUE);

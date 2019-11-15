@@ -8,7 +8,6 @@ xgb.reconfigurableSource <- function(data, folds, label=NULL, weights=NULL) {
     handle <- .Call(XGReconfigurableSourceCreateFromDMatrix_R, data, folds);
     cnames <- colnames(data)
   } else if(inherits(data, "data.frame")) {
-    stopifnot(is.numeric(label))
     handle <- .Call(XGReconfigurableSourceCreateFromDataFrame_R, folds, data, label, weights);
 
     cnames <- c()

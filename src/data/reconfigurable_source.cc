@@ -97,7 +97,9 @@ ReconfigurableSourcePtr ReconfigurableSource::Create(
   nfo.num_row_ = nrow;
   nfo.num_col_ = col_offsets.back();
 
-  nfo.labels_.HostVector().assign(labels, labels + nrow);
+  if (labels != nullptr) {
+    nfo.labels_.HostVector().assign(labels, labels + nrow);
+  }
   if (weights != nullptr) {
     nfo.weights_.HostVector().assign(weights, weights + nrow);
   }
