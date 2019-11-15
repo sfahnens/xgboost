@@ -63,6 +63,9 @@ ReconfigurableMatrix::ReconfigurableMatrix(ReconfigurableSourcePtr source,
 
   info_.Clear();
 
+  // ensure that info_ is synced with this_config_state_
+  std::sort(begin(active), end(active));
+
   CHECK(!active.empty()) << "need at least one active batch!";
   info_.num_col_ = source_->batches_.at(active.front()).info_.num_col_;
   col_sizes_.resize(info_.num_col_, 0ul);
