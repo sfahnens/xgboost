@@ -96,7 +96,7 @@
 #' }
 #'
 #' @export
-xgb.cv.source <- function(params=list(), source, nrounds,
+xgb.cv.source <- function(params=list(), source, nrounds, fold_groups = NULL,
                           prediction = FALSE, showsd = TRUE, metrics=list(),
                           obj = NULL, feval = NULL, verbose = TRUE, print_every_n=1L,
                           early_stopping_rounds = NULL, maximize = NULL, callbacks = list(), ...) {
@@ -142,20 +142,32 @@ xgb.cv.source <- function(params=list(), source, nrounds,
   # Sort the callbacks into categories
   cb <- categorize.callbacks(callbacks)
 
-
   # create the booster-folds
-	nfold <- attr(source, "nfold")
-  if(verbose) {
-    cat('start cross-validation for ', nfold , ' folds\n', sep = '')
+  if(is.null(fold_groups)) {
+    nfold <- attr(source, "nfold")
+    if(verbose) {
+      cat('start cross-validation for', nfold , 'folds\n')
+    }
+    bst_folds <- lapply(1:nfold, function(k) {
+      dtest <- xgb.DMatrix(source, active_folds=k)
+      dtrain <- xgb.DMatrix(source, active_folds=(1:nfold)[(1:nfold) != k])
+
+      handle <- xgb.Booster.handle(params, list(dtrain, dtest))
+      list(dtrain = dtrain, bst = handle, watchlist = list(train = dtrain, test=dtest))
+    })
+  } else {
+    if(verbose) {
+      cat('start cross-validation for', length(fold_groups) , 'fold_groups\n')
+    }
+    bst_folds <- lapply(seq_along(fold_groups), function(k) {
+      dtest <- xgb.DMatrix(source, active_folds=fold_groups[[k]])
+      dtrain <- xgb.DMatrix(source, active_folds=unlist(fold_groups[-k]))
+
+      handle <- xgb.Booster.handle(params, list(dtrain, dtest))
+      list(dtrain = dtrain, bst = handle, watchlist = list(train = dtrain, test=dtest))
+    })
   }
 
-  bst_folds <- lapply(1:nfold, function(k) {
-    dtest <- xgb.DMatrix(source, active_folds=k)
-	  dtrain <- xgb.DMatrix(source, active_folds=(1:nfold)[(1:nfold) != k])
-
-    handle <- xgb.Booster.handle(params, list(dtrain, dtest))
-    list(dtrain = dtrain, bst = handle, watchlist = list(train = dtrain, test=dtest))
-  })
   # a "basket" to collect some results from callbacks
   basket <- list()
 

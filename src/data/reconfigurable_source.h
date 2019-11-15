@@ -8,7 +8,7 @@ namespace xgboost {
 namespace data {
 
 struct ReconfigurableBatch {
-  using ConfigState = std::bitset<64>;
+  using ConfigState = std::bitset<256>;
 
   ReconfigurableBatch() = default;
   ReconfigurableBatch(SparsePage rows)
