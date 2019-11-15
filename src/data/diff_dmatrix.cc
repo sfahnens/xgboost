@@ -28,12 +28,16 @@ void DiffDMatrixByRowNotEmpty(DMatrix& a, DMatrix& b) {
   CHECK((*it_a).base_rowid == 0) << "it_a first base_rowid != 0";
   CHECK((*it_b).base_rowid == 0) << "it_b first base_rowid != 0";
 
+  auto batch_n_a = 0;
+  auto batch_n_b = 0;
+
   size_t batch_idx_a = 0;
   size_t batch_idx_b = 0;
 
   for (size_t curr_row = 0; curr_row < a.Info().num_row_; ++curr_row) {
     if (batch_idx_a >= (*it_a).Size()) {
       ++it_a;
+      ++batch_n_a;
       CHECK(it_a != a_batch_set.end()) << "a batch_set hit end";
       CHECK((*it_a).base_rowid == curr_row) << "id_a bad base_rowid";
       batch_idx_a = 0;
@@ -41,6 +45,7 @@ void DiffDMatrixByRowNotEmpty(DMatrix& a, DMatrix& b) {
 
     if (batch_idx_b >= (*it_b).Size()) {
       ++it_b;
+      ++batch_n_b;
       CHECK(it_a != a_batch_set.end()) << "b batch_set hit end";
       CHECK((*it_b).base_rowid == curr_row) << "it_b bad base_rowid";
       batch_idx_b = 0;
@@ -51,8 +56,37 @@ void DiffDMatrixByRowNotEmpty(DMatrix& a, DMatrix& b) {
 
     CHECK(inst_a.size() == inst_b.size()) << "row: inst size() mismatch";
     for (size_t i = 0; i < inst_a.size(); ++i) {
-      CHECK(inst_a[i].index == inst_b[i].index) << "row: index mismatch";
-      CHECK(inst_a[i].fvalue == inst_b[i].fvalue) << "row: fvalue mismatch";
+      auto const& debug_output = [&] {
+        std::stringstream ss;
+        ss << "[i=" << i << ", batch_idx_a= " << batch_idx_a
+           << ", batch_idx_b=" << batch_idx_b  //
+           << ", batch_n_a= " << batch_n_a  //
+           << ", batch_n_b=" << batch_n_b
+           << ", (*it_a).base_rowid=" << (*it_a).base_rowid
+           << ", (*it_b).base_rowid=" << (*it_b).base_rowid
+           << ", inst_a.size()=" << inst_a.size()
+           << ", inst_b.size()=" << inst_b.size()
+           << ", inst_a[i].index=" << inst_a[i].index
+           << ", inst_b[i].index=" << inst_b[i].index
+           << ", inst_a[i].fvalue=" << inst_a[i].fvalue
+           << ", inst_b[i].fvalue=" << inst_b[i].fvalue << "]\n";
+
+        ss << "A: ";
+        for (size_t j = 0; j < inst_a.size(); ++j) {
+          ss << inst_a[j].index << "|" << inst_a[j].fvalue << " ";
+        }
+        ss << "\nB: ";
+        for (size_t j = 0; j < inst_b.size(); ++j) {
+          ss << inst_b[j].index << "|" << inst_b[j].fvalue << " ";
+        }
+
+        return ss.str();
+      };
+
+      CHECK(inst_a[i].index == inst_b[i].index)
+          << "row: index mismatch" << debug_output();
+      CHECK(inst_a[i].fvalue == inst_b[i].fvalue)
+          << "row: fvalue mismatch" << debug_output();
     }
 
     ++batch_idx_a;
